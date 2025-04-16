@@ -3,23 +3,37 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { compare } from "bcrypt";
 import { prisma } from "@/lib/prisma";
 import authConfig from "./auth.config";
+import Credentials from "next-auth/providers/credentials"
 
 
+function generateUUID() {
+  let d = new Date().getTime();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = (d + Math.random() * 16) % 16 | 0;
+    d = Math.floor(d / 16);
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
 async function createSession(userId: string) {
   try {
     console.log(`Creating session for user ${userId}`);
     
-    const sessionToken = crypto.randomUUID();
+    const sessionToken = generateUUID();
     
     const expires = new Date();
     expires.setDate(expires.getDate() + 30);
     
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { userType: true }
+    });
  
     const session = await prisma.session.create({
       data: {
         sessionToken,
         userId,
         expires,
+        userType: user?.userType 
       }
     });
     
@@ -64,6 +78,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     maxAge: 30 * 24 * 60 * 60, 
   },
   callbacks: {
+    
     async jwt({ token, user, account }) {
       
       if (user) {
@@ -142,64 +157,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       }
       
-      // For credentials login
-      if (account?.provider === 'credentials') {
-        try {
-          await createSession(user.id);
-          console.log(`Session created for credentials login: user ${user.id}`);
-        } catch (error) {
-          console.error("Failed to create session for credentials login:", error);
-        }
-      }
+      
       
       return true;
     },
     authorized({ auth, request }) {
-      const { nextUrl } = request;
-      const isLoggedIn = !!auth?.user;
-      const userType = auth?.user?.type;
-      const profileCompleted = auth?.user?.profileCompleted;
-
-      if (isLoggedIn && profileCompleted === false) {
-        // If they're trying to go anywhere except the profile setup flow, redirect them
-        if (!nextUrl.pathname.startsWith('/sign-up')) {
-          return Response.redirect(new URL('/sign-up', request.url));
-        }
-        // Allow access to profile setup flow
-        return true;
-      }
-      
-      // Determine route types
-      const isClientRoute = nextUrl.pathname.startsWith('/client') || 
-                           nextUrl.pathname.startsWith('/dashboard');
-                           
-      const isFreelancerRoute = nextUrl.pathname.startsWith('/freelancer') || 
-                              nextUrl.pathname.startsWith('/home');
-      
-      // Always allow access to auth-related pages
-      if (nextUrl.pathname === '/' || 
-          nextUrl.pathname.startsWith('/sign-in') || 
-          nextUrl.pathname.startsWith('/sign-up') ||
-          nextUrl.pathname.startsWith('/auth')) {
-        return true;
-      }
-      
-      // Check if user is logged in
-      if (!isLoggedIn) {
-        return false;
-      }
-      
-      // Check route-specific permissions based on user type
-      if (userType === "FREELANCER" && isClientRoute) {
-        return false;
-      }
-      
-      if (userType === "CLIENT" && isFreelancerRoute) {
-        return false;
-      }
-      
-      // Allow access to other routes if user is logged in
-      return true;
+     
+      return !!auth?.user;
     }
   },
   events: {
@@ -214,12 +178,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
     }
   },
+  
+ 
   secret: process.env.NEXTAUTH_SECRET,
   ...authConfig,
 });
 
 export async function signInWithSession(email: string, password: string) {
   try {
+    // Find the user
     const user = await prisma.user.findUnique({
       where: { email },
       select: {
@@ -243,26 +210,25 @@ export async function signInWithSession(email: string, password: string) {
       return { success: false, error: "Invalid password" };
     }
     
-    try {
-      // Create a session for the user
-      const sessionToken = await createSession(user.id);
-      
-      if (!sessionToken) {
-        return { success: false, error: "Failed to create session" };
-      }
-      
-      return { 
-        success: true, 
-        user: {
-          id: user.id,
-          userType: user.userType,
-          profileCompleted: user.profileCompleted
-        } 
-      };
-    } catch (sessionError) {
-      console.error("Failed to create session:", sessionError);
-      return { success: false, error: "Failed to create session" };
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (result?.error) {
+      console.error("Error signing in:", result.error);
+      return { success: false, error: result.error };
     }
+    
+    return { 
+      success: true, 
+      user: {
+        id: user.id,
+        userType: user.userType,
+        profileCompleted: user.profileCompleted
+      } 
+    };
   } catch (error) {
     console.error("Error in signInWithSession:", error);
     return { success: false, error: "Authentication failed" };

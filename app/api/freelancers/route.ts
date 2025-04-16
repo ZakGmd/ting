@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { auth } from '@/auth'
 
 interface Freelancer {
   id: string
@@ -28,11 +29,20 @@ interface TransformedFreelancer {
 }
 
 export async function GET() {
+  const session = await auth() ;
+  
+  if(!session){
+    return NextResponse.json(
+      { error: 'not authenticated' },
+      { status: 500 }
+    )
+  }
+  const userType = 'FREELANCER'
   try {
     // Fetch freelancers from the database
     const freelancers = await prisma.user.findMany({
       where: {
-        userType: 'FREELANCER'
+        userType: userType
       },
       select: {
         id: true,

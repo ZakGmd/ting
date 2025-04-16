@@ -75,6 +75,11 @@ export default auth(function middleware(req) {
       if (userType === "FREELANCER") {
         return NextResponse.redirect(new URL('/home', req.url));
       } 
+      else if (userType === "CLIENT") {
+        return NextResponse.redirect(new URL('/client', req.url));
+      }else{
+        return NextResponse.redirect(new URL('/', req.url));
+      }
     }
   } else {
     // If user is not logged in and trying to access protected routes

@@ -21,15 +21,17 @@ export default function TopFreelancers() {
   const [freelancers, setFreelancers] = useState<Freelancer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
+  
   useEffect(() => {
     const fetchFreelancers = async () => {
       try {
-        const response = await fetch('/api/freelancers')
+        const response = await fetch('/api/freelancers' ,{cache: 'no-store'})
         if (!response.ok) {
           throw new Error('Failed to fetch freelancers')
+        
         }
         const data = await response.json()
+        console.log(data)
         setFreelancers(data)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred')
