@@ -4,6 +4,7 @@ import { hash } from "bcrypt";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { auth, signIn, signInWithSession, signOut } from "@/auth";
+import { UserType } from "@prisma/client";
 
 type AuthCheckResult = {
   isAuthenticated: boolean
@@ -11,6 +12,7 @@ type AuthCheckResult = {
   userId?: string
   userName?: string
   error?: string
+  userType?: string
 }
 
 /**
@@ -115,7 +117,8 @@ export async function checkAuthStatus(): Promise<AuthCheckResult> {
     return {
       isAuthenticated: true,
       needsProfileCompletion: false,
-      userId: session.user.id
+      userId: session.user.id,
+      userType: session.user.type ,
     };
   } catch (error) {
     console.error("Server-side auth check error:", error);

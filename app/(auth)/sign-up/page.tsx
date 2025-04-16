@@ -62,9 +62,12 @@ export default function SignUp() {
           setShowSignupForm(true);
           setSignupStep(2);
         } else if (authStatus.isAuthenticated) {
-          
+          if (authStatus.userType === "FREELANCER") {
+            router.push("/home");
+          } else {
             router.push("/client");
-        }
+          }
+        } 
       } catch (error) {
         console.error("Error during authentication check:", error);
         setError("Failed to check authentication status");
