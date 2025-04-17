@@ -116,7 +116,8 @@ export async function getFollowing(userId?: string, limit = 10, offset = 0) {
     return { success: false, error: "Unauthorized" };
   }
 
-  const targetUserId = userId || session.user.id;
+  // If userId is provided, use it. Otherwise use the session user id (which we know is not null here)
+  const targetUserId = userId || (session?.user?.id as string);
 
   try {
     const following = await prisma.follow.findMany({
@@ -145,7 +146,7 @@ export async function getFollowing(userId?: string, limit = 10, offset = 0) {
     });
 
     // Map to return user data with isFollowing status
-    const followingUsers = following.map((follow) => ({
+    const followingUsers = following.map((follow: any) => ({
       ...follow.following,
       isFollowing: true,
     }));
@@ -167,7 +168,8 @@ export async function getFollowers(userId?: string, limit = 10, offset = 0) {
     return { success: false, error: "Unauthorized" };
   }
 
-  const targetUserId = userId || session.user.id;
+  // If userId is provided, use it. Otherwise use the session user id (which we know is not null here)
+  const targetUserId = userId || (session?.user?.id as string);
 
   try {
     const followers = await prisma.follow.findMany({
@@ -202,21 +204,21 @@ export async function getFollowers(userId?: string, limit = 10, offset = 0) {
       const followedByMe = await prisma.follow.findMany({
         where: {
           followerId: session.user.id,
-          followingId: { in: followers.map(f => f.follower.id) }
+          followingId: { in: followers.map((f: any) => f.follower.id) }
         },
         select: {
           followingId: true
         }
       });
       
-      const followedIds = new Set(followedByMe.map(f => f.followingId));
+      const followedIds = new Set(followedByMe.map((f: any) => f.followingId));
       
-      followersWithStatus = followers.map((follow) => ({
+      followersWithStatus = followers.map((follow: any) => ({
         ...follow.follower,
         isFollowing: followedIds.has(follow.follower.id),
       }));
     } else {
-      followersWithStatus = followers.map((follow) => ({
+      followersWithStatus = followers.map((follow: any) => ({
         ...follow.follower,
         isFollowing: false,
       }));
@@ -241,7 +243,7 @@ export async function searchUsers(query: string, onlyFreelancers = true, limit =
 
   try {
     // Create a filter based on userType if onlyFreelancers is true
-    const userTypeFilter = onlyFreelancers ? { userType: 'FREELANCER' } : {};
+    const userTypeFilter = onlyFreelancers ? { userType: 'FREELANCER' as const } : {};
     
     // Search for users matching the query
     const users = await prisma.user.findMany({
@@ -284,7 +286,7 @@ export async function searchUsers(query: string, onlyFreelancers = true, limit =
       },
     });
 
-    const followingIds = new Set(following.map(f => f.followingId));
+    const followingIds = new Set(following.map((f: any) => f.followingId));
     
     const usersWithFollowStatus = users.map(user => ({
       ...user,

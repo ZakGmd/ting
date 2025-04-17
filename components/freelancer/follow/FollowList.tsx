@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition, useCallback } from 'react';
 import { 
   getFollowers, 
   getFollowing, 
@@ -36,11 +36,7 @@ export default function FollowList({ userId, initialTab = 'followers' }: FollowL
   const [hasMore, setHasMore] = useState(true);
   const limit = 10;
 
-  useEffect(() => {
-    fetchUsers(activeTab);
-  }, [activeTab, userId]);
-
-  const fetchUsers = async (type: TabType, append = false) => {
+  const fetchUsers = useCallback(async (type: TabType, append = false) => {
     setIsLoading(true);
     setError(null);
     
@@ -84,7 +80,11 @@ export default function FollowList({ userId, initialTab = 'followers' }: FollowL
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId, page, limit]);
+
+  useEffect(() => {
+    fetchUsers(activeTab);
+  }, [activeTab, fetchUsers]);
 
   const handleLoadMore = () => {
     if (!isLoading && hasMore) {
