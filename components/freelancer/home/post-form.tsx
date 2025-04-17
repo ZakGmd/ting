@@ -4,17 +4,9 @@ import { XIcon, ImageIcon, Gift, BarChart2, Smile, Calendar, MapPin } from "luci
 import Image from "next/image";
 import { useState, useRef, useTransition  } from "react";
 import { createPost, PostWithUser } from "@/actions/freelancer/freelancerActions";
+import { User } from "@/app/(freelancer)/home/page";
 
-// Proper type for user based on the schema
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  image?: string | null;
-  profileImage?: string | null;
-  displayName?: string | null;
-  experience?: string | null;
-}
+
 
 interface CreatePostFormProps {
   user: User;

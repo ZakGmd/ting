@@ -1,5 +1,6 @@
 import { EB_Garamond, Inter } from "next/font/google";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Upload, User } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -210,7 +211,13 @@ export default function SetupProfileForm({
             <div className="relative mb-4">
               {avatarPreview ? (
                 <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-[#fc7348]/60">
-                  <img src={avatarPreview} alt="Profile preview" className="w-full h-full object-cover" />
+                  <Image 
+                    src={avatarPreview} 
+                    alt="Profile preview" 
+                    width={96} 
+                    height={96} 
+                    className="w-full h-full object-cover" 
+                  />
                 </div>
               ) : (
                 <div className="w-24 h-24 rounded-full flex items-center justify-center bg-white/2 shadow-[inset_0px_1px_1px_rgba(0,0,0,0.7),0px_0.5px_0px_rgba(255,255,255,0.17)]">
@@ -287,7 +294,13 @@ export default function SetupProfileForm({
             >
               <label htmlFor="coverImage" className="cursor-pointer w-full h-full flex flex-col items-center justify-center">
                 {coverPreview ? (
-                  <img src={coverPreview} alt="Cover preview" className="w-full h-full object-cover" />
+                  <Image 
+                    src={coverPreview}
+                    alt="Cover preview" 
+                    width={400}
+                    height={128}
+                    className="w-full h-full object-cover" 
+                  />
                 ) : (
                   <>
                     {isUploading ? (

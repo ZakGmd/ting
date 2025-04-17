@@ -35,7 +35,6 @@ export default function SignUp() {
   useEffect(() => {
     const initAuth = async () => {
       try {
-      
         const authStatus = await checkAuthStatus();
         
         // If OAuth user needs to complete profile
@@ -43,7 +42,6 @@ export default function SignUp() {
           setIsOAuthUser(true);
           if (authStatus.userId) {
             setOauthUserId(authStatus.userId);
-            
             
             await setupOAuthUser(authStatus.userId);
           }
@@ -58,7 +56,6 @@ export default function SignUp() {
             }));
           }
           
-      
           setShowSignupForm(true);
           setSignupStep(2);
         } else if (authStatus.isAuthenticated) {
@@ -75,7 +72,7 @@ export default function SignUp() {
     };
     
     initAuth();
-  }, []);
+  }, [router]);
   
   const [formData, setFormData] = useState({
 

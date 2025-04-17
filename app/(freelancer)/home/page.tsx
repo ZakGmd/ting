@@ -12,6 +12,17 @@ import { useEffect, useState, useOptimistic } from "react";
 import { PostWithUser, getPosts } from "@/actions/freelancer/freelancerActions";
 import { Star } from "lucide-react";
 
+// Define a User interface instead of using 'any'
+export interface User {
+  id: string;
+  name: string;
+  email?: string;
+  image?: string | null;
+  profileImage?: string | null;
+  displayName?: string | null;
+  experience?: string | null;
+}
+
 const garamond = EB_Garamond({
     subsets: ['latin'],
     weight: ['400', '500', '600', '700'],
@@ -35,7 +46,7 @@ const popularSkills = [
 ];
 
 export default function HomePage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<PostWithUser[]>([]);
   const [loading, setLoading] = useState(true);
   
