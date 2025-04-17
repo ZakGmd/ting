@@ -5,7 +5,6 @@ import { EB_Garamond } from "next/font/google";
 import Link from 'next/link';
 import { Geist } from "next/font/google";
 import QuickStates from "@/components/freelancer/home/quickStates";
-import { SearchBar } from "@/components/freelancer/home/searchBar";
 import Post from "@/components/freelancer/home/post";
 import CreatePostForm from "@/components/freelancer/home/post-form";
 import { useEffect, useState, useOptimistic } from "react";
@@ -13,7 +12,7 @@ import { PostWithUser, getPosts } from "@/actions/freelancer/freelancerActions";
 import { Star } from "lucide-react";
 import UserSearch from "@/components/freelancer/search/UserSearch";
 
-// Define a User interface instead of using 'any'
+
 export interface User {
   id: string;
   name: string;
