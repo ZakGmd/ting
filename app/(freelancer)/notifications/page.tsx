@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getNotifications, markNotificationsAsRead, markAllNotificationsAsRead, NotificationWithActor } from '@/actions/notifications/notificationActions';
 import { Bell, Check, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -18,11 +18,7 @@ export default function NotificationsPage() {
   const [page, setPage] = useState(0);
   const limit = 10;
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
-
-  async function fetchNotifications(append = false) {
+  const fetchNotifications = useCallback(async (append = false) => {
     try {
       setLoading(true);
       const offset = append ? page * limit : 0;
@@ -42,12 +38,17 @@ export default function NotificationsPage() {
       } else {
         setError(result.error || 'Failed to fetch notifications');
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
-  }
+  }, [page, limit]);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   async function handleLoadMore() {
     if (!loading && hasMore) {
@@ -134,7 +135,7 @@ export default function NotificationsPage() {
           <Bell size={48} className="text-gray-400 mb-4" />
           <p className="text-gray-300 text-lg">No notifications yet</p>
           <p className="text-gray-400 text-sm mt-2">
-            We'll notify you when something happens
+            We&apos;ll notify you when something happens
           </p>
         </div>
       ) : (
