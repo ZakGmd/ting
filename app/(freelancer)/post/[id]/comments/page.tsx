@@ -22,7 +22,13 @@ interface Comment {
   };
 }
 
-export default function CommentsPage({ params }: { params: { id: string } }) {
+interface CommentsPageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default function CommentsPage({ params }: CommentsPageProps) {
   const postId = params.id;
   const [post, setPost] = useState<PostWithUser | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
