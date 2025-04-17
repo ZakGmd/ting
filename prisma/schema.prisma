@@ -33,7 +33,8 @@ model User {
   accounts         Account[]
   sessions         Session[]
   posts            Post[]             @relation("CreatorPosts")
-
+  followedBy    Follow[]  @relation("Follower")
+  following     Follow[]  @relation("Following")
   aiRatings        AIRating[]        @relation("FreelancerAIRatings")
   comments         Comment[]         @relation("UserComments")
   likes            Like[]            @relation("UserLikes")
@@ -41,6 +42,18 @@ model User {
   // Notification relationships
   notifications    Notification[]    @relation("UserNotifications")
   actorNotifications Notification[] @relation("NotificationActor")
+}
+model Follow {
+  id            String   @id @default(cuid())
+  followerId    String
+  follower      User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  
+  followingId   String
+  following     User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime @default(now())
+
+  @@unique([followerId, followingId])
 }
 
 model Post {

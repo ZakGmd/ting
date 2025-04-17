@@ -11,6 +11,7 @@ import CreatePostForm from "@/components/freelancer/home/post-form";
 import { useEffect, useState, useOptimistic } from "react";
 import { PostWithUser, getPosts } from "@/actions/freelancer/freelancerActions";
 import { Star } from "lucide-react";
+import UserSearch from "@/components/freelancer/search/UserSearch";
 
 // Define a User interface instead of using 'any'
 export interface User {
@@ -261,7 +262,7 @@ export default function HomePage() {
             </div>
             
              <div className="max-w-[320px] w-full">
-                <SearchBar/>
+                <UserSearch/>
                 
               
                 <div className="mt-4 flex flex-col gap-2 ">
