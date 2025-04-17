@@ -65,7 +65,7 @@ export default function HomePage() {
         const session = await res.json();
         
         if (session?.user) {
-          setUser(session.user);
+          setUser(session.user as User);
         }
 
         // Fetch posts

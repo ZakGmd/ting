@@ -217,6 +217,7 @@ export default function SetupProfileForm({
                     width={96} 
                     height={96} 
                     className="w-full h-full object-cover" 
+                    unoptimized={avatarPreview.startsWith('data:')}
                   />
                 </div>
               ) : (
@@ -300,6 +301,7 @@ export default function SetupProfileForm({
                     width={400}
                     height={128}
                     className="w-full h-full object-cover" 
+                    unoptimized={coverPreview.startsWith('data:')}
                   />
                 ) : (
                   <>
