@@ -17,6 +17,7 @@
     "bcryptjs": "^3.0.2",
     "chart.js": "^4.4.8",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "lucide-react": "^0.487.0",
     "motion": "^12.7.2",
     "next": "15.3.0",

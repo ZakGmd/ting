@@ -2,14 +2,26 @@
 
 import { XIcon, ImageIcon, Gift, BarChart2, Smile, Calendar, MapPin } from "lucide-react";
 import Image from "next/image";
-import { useState, useRef, useTransition } from "react";
-import { createPost } from "@/actions/freelancer/freelancerActions";
+import { useState, useRef, useTransition  } from "react";
+import { createPost, PostWithUser } from "@/actions/freelancer/freelancerActions";
 
-interface CreatePostFormProps {
-  user: any;
+// Proper type for user based on the schema
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  image?: string | null;
+  profileImage?: string | null;
+  displayName?: string | null;
+  experience?: string | null;
 }
 
-export default function CreatePostForm({ user }: CreatePostFormProps) {
+interface CreatePostFormProps {
+  user: User;
+  onPostCreated: (post: PostWithUser) => void;
+}
+
+export default function CreatePostForm({ user, onPostCreated }: CreatePostFormProps) {
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
@@ -46,15 +58,30 @@ export default function CreatePostForm({ user }: CreatePostFormProps) {
         });
       }
       
-      await createPost(formData);
+      // Add title from text if missing
+      if (!formData.get('title')) {
+        const text = formData.get('text') as string;
+        if (text) {
+          // Use first line or first 50 chars as title
+          const title = text.split('\n')[0].substring(0, 50);
+          formData.set('title', title);
+        }
+      }
       
-      // Reset form and state
-      formRef.current?.reset();
-      setMediaFiles([]);
+      const result = await createPost(formData);
       
-      // Revoke all object URLs
-      mediaPreviews.forEach(url => URL.revokeObjectURL(url));
-      setMediaPreviews([]);
+      if (result.success && result.post) {
+        // Notify parent component of the new post for optimistic updates
+        onPostCreated(result.post);
+        
+        // Reset form and state
+        formRef.current?.reset();
+        setMediaFiles([]);
+        
+        // Revoke all object URLs
+        mediaPreviews.forEach(url => URL.revokeObjectURL(url));
+        setMediaPreviews([]);
+      }
     });
   };
   
@@ -68,7 +95,7 @@ export default function CreatePostForm({ user }: CreatePostFormProps) {
         <div className="w-10 h-10 bg-white/2 rounded-full overflow-hidden">
           {user?.image ? (
             <Image 
-              src={user.image} 
+              src={user.profileImage || user.image}  
               alt={user.name || "User"} 
               width={40} 
               height={40}
@@ -82,11 +109,12 @@ export default function CreatePostForm({ user }: CreatePostFormProps) {
         </div>
         <div className="flex-1">
           <div className="mb-4 space-y-3">
-          <input
-            type="text"
-            name="text"
-            placeholder="What's happening?"
-            className="w-full bg-transparent text-xl placeholder-gray-500 focus:outline-none"
+            
+            <input
+              name="text"
+              placeholder="What's happening?"
+              className="w-full bg-transparent text-md placeholder-gray-500 focus:outline-none  resize-none"
+              required
             />
             
             

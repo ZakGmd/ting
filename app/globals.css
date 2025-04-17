@@ -28,6 +28,24 @@ body {
   border-radius: 100%;
 }
 
+/* Custom scrollbar for comments */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(252, 115, 72, 0.3);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(252, 115, 72, 0.5);
+}
 
 .leftSide::before {
   content: "";
