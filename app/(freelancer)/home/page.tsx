@@ -1,9 +1,13 @@
-import { XIcon, ImageIcon, Gift, BarChart2, Smile, Calendar, MapPin, Bell, Bookmark, Home, Mail, Settings, User, BarChart3, ClipboardCheck, FolderHeart, HelpCircle, Search, LogOut, Star} from "lucide-react";
+import { Bell, Bookmark, BarChart3, ClipboardCheck, FolderHeart, HelpCircle, Home, LogOut, Mail, Search, Settings, User } from "lucide-react";
 import { EB_Garamond } from "next/font/google";
 import Link from 'next/link';
 import { Geist } from "next/font/google";
 import QuickStates from "@/components/freelancer/home/quickStates";
 import { SearchBar } from "@/components/freelancer/home/searchBar";
+import Post from "@/components/freelancer/home/post";
+import CreatePostForm from "@/components/freelancer/home/post-form";
+import { auth } from "@/auth";
+import { Star } from "lucide-react";
 
 const garamond = EB_Garamond({
     subsets: ['latin'],
@@ -25,12 +29,14 @@ const popularSkills = [
     "React",
     "Tailwind CSS"
   ];
-export default function Page(){
- 
+
+export default async function Page(){
+    const session = await auth();
+    const user = session?.user;
     
     return(
         <>
-          <div className={` flex ${geist.className}  items-start justify-between text-white max-w-[1400px]  mx-auto `}>
+          <div className={` flex ${geist.className}  overflow-hidden items-start justify-between text-white max-w-[1400px]  mx-auto `}>
                 <div className="min-h-screen relative max-w-[180px] w-full flex flex-col items-start gap-3 ">
                     <div className="px-3 flex items-start">
                         <h1 className={` text-4xl  ${garamond.className} align-text-top font-normal  bg-clip-text leading-relaxed text-transparent bg-gradient-to-r to-slate-100 from-[-10%] from-[#fc7348]`}>Tingle</h1>
@@ -131,90 +137,36 @@ export default function Page(){
                     </nav>
                     <QuickStates />
                 </div>
-                <div className="flex item-start px-10 justify-between ">
+                <div className="flex item-start px-10 justify-between  ">
                     <div className="w-[4px] h-[100vh]  shadow-[0px_0.5px_1px_rgba(255,255,255,0.1),inset_-0.4px_0.2px_0px_rgba(0,0,0,0.7),inset_0.4px_0.2px_0px_rgba(0,0,0,0.7)] bg-black/5 "></div>
 
-                    <div className="FEEEED w-full flex flex-col gap-0.5">
-                        <div className="flex flex-col items-start w-full">
-                            <div className="sticky top-0 z-10 w-full bg-[#1D1D1F]/80 backdrop-blur-md grid grid-cols-3">
+                    <div className="w-full  flex flex-col gap-0.5  h-screen ">
+                        <div className="flex relative   flex-col items-start w-full">
+                            <div className="absolute top-0 left-0 right-0 z-20  bg-[#1D1D1F]/10 backdrop-blur-md grid grid-cols-3">
                                 <div className=" inline-flex items-center justify-center whitespace-nowrap px-3 text-sm font-medium py-2.5 border-b-2 border-[#fc7348]/90   ">For you</div>
                                 <div className="inline-flex items-center justify-center whitespace-nowrap px-3 text-sm font-medium py-2.5 ">Following</div>
                                 <div className="inline-flex items-center justify-center whitespace-nowrap px-3 text-sm font-medium py-2.5  ">Projects</div>
                             </div>
-                            <div className="w-full h-[1px] shadow-[inset_0px_1px_1px_rgba(0,0,0,0.7),0px_0.75px_0.65px_rgba(255,255,255,0.10)]"></div>
+                            <div className="w-full absolute   h-[2px] mt-10 z-20  shadow-[inset_0px_1px_1px_rgba(0,0,0,0.7),0px_0.75px_0.65px_rgba(255,255,255,0.10)]"></div>
 
                         </div>
-                        <div className="flex flex-col items-start w-full">
-                        <form  className="p-4  backdrop-blur-2xl  rounded-b-lg w-[765px]">
-                            <div className="flex gap-4">
-                                <div className="w-10 h-10 bg-white/2 rounded-full">
-                                <img alt={ "u"} />
-                                
-                                </div>
-                                <div className="flex-1">
-                                    <div className="mb-4">
-                                    <input
-                                        type="text"
-                                    //  value={postText}
-                                    //  onChange={e => setPostText(e.target.value)}
-                                        placeholder="Describe your magic !"
-                                        className="w-full bg-transparent text-xl placeholder-gray-500 focus:outline-none"
-                                    />
-                                        <div className="mt-2 relative">
-                                        <img
-                                        
-                                            width={400}
-                                            height={1}
-                                            alt="i"
-                                            className="rounded-lg max-h-60 object-cover"
-                                        />
-                                        <button
-                                            type="button"
-                                        // onClick={() => setPostImage("")}
-                                            className="absolute top-2 right-2 flex items-center justify-center bg-[#fc7348]/13 border-[0.5px] border-white/10 rounded-full p-1"
-                                        >
-                                            <XIcon className="w-3.5 h-3.5" />
-                                        </button>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                    <div className="flex gap-2 text-blue-500">
-                                        <button 
-                                        type="button" 
-                                        className="p-2 hover:bg-[#fc7348]/10 rounded-full"
-                                        // onClick={() => setShowImageUpload(true)}
-                                        >
-                                        <ImageIcon strokeWidth={1} className="w-5 h-5 text-[#fc7348]" />
-                                        </button>
-                                        <button type="button" className="p-2 hover:bg-[#fc7348]/10 rounded-full">
-                                        <Gift strokeWidth={1} className="w-5 h-5 text-[#fc7348]" />
-                                        </button>
-                                        <button type="button" className="p-2 hover:bg-[#fc7348]/10 rounded-full">
-                                        <BarChart2 strokeWidth={1} className="w-5 h-5 text-[#fc7348]" />
-                                        </button>
-                                        <button type="button" className="p-2 hover:bg-[#fc7348]/10 rounded-full">
-                                        <Smile strokeWidth={1} className="w-5 h-5 text-[#fc7348]" />
-                                        </button>
-                                        <button type="button" className="p-2 hover:bg-[#fc7348]/10 rounded-full">
-                                        <Calendar strokeWidth={1} className="w-5 h-5 text-[#fc7348]" />
-                                        </button> 
-                                        <button type="button" className="p-2 hover:bg-[#fc7348]/10 rounded-full">
-                                        <MapPin strokeWidth={1} className="w-5 h-5 text-[#fc7348]" />
-                                        </button>
-                                    </div>
-                                    <button 
-                                        type="submit" 
-                                        className="rounded-md px-3 py-1 text-[14px] bg-[#fc7348]/35 text-white/50 hover:text-white transition-all duration-300 hover:bg-[#fc7348]/90 cursor-pointer"
-                                    // disabled={!postText.trim() || submitting}
-                                    >
-                                        Post
-                                    </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                        <div className="w-full h-[2px] shadow-[inset_0px_1px_1px_rgba(0,0,0,0.7),0px_0.3px_0.65px_rgba(255,255,255,0.10)]"></div>
+                        <div className="Feed flex flex-col items-start overflow-y-auto pt-10   w-full ">
 
+                            <div className="flex flex-col items-start w-full">
+                              <CreatePostForm user={user} />
+                              <div className="w-full h-[2px] shadow-[inset_0px_1px_1px_rgba(0,0,0,0.7),0px_0.3px_0.65px_rgba(255,255,255,0.10)]"></div>
+                            </div>
+ 
+                            <div className="flex flex-col items-start w-full mt-4 ">
+                                <div className=" px-4.5  flex items-center  justify-between w-full">
+                                    <div>Recent Activity</div>
+                                    <div>view</div>
+                                </div>
+                                <Post/>
+                                <Post/>
+                                <Post/>
+                                <Post/>
+                            </div>
                         </div>
                         
                     </div>
@@ -227,7 +179,6 @@ export default function Page(){
                     
                   
                     <div className="mt-4 flex flex-col gap-2 ">
-                    {/* Recommended Jobs */}
                     <div className=" flex flex-col w-full items-start gap-2 ">
                         <div className="flex items-center justify-between pr-1 w-full">
                             <div>Recommanded jobs</div>
@@ -329,15 +280,9 @@ export default function Page(){
                         </div>
                         
                     </div>
-                    
-                    
-                    
-                    
                     </div>
-                 </div>
-                
+                </div>
           </div>
-        
         </>
         
     )

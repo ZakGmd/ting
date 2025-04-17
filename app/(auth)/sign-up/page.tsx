@@ -173,9 +173,7 @@ export default function SignUp() {
     }
     
     if (result.success) {
-      // Reset form
-      setShowSignupForm(false);
-      
+   
       
       // Redirect based on user type
       if (result.userType === "FREELANCER") {

@@ -32,8 +32,52 @@ model User {
   updatedAt        DateTime    @updatedAt
   accounts         Account[]
   sessions         Session[]
+  posts         Post[]             @relation("CreatorPosts")
+
+  aiRatings      AIRating[]        @relation("FreelancerAIRatings")
+  comments       Comment[]         @relation("UserComments")
+  likes          Like[]            @relation("UserLikes")
 }
 
+model Post {
+  id            String    @id @default(cuid())
+
+  description   String    @db.Text
+  mediaUrls     String[]  // Array of URLs to images or videos
+  creatorId     String
+  creator       User      @relation("CreatorPosts", fields: [creatorId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  tags          String[]
+  
+  // Engagement metrics
+  likes         Like[]
+  comments      Comment[]
+  views         Int       @default(0)
+  
+  // AI analyzed metrics
+  aiRating      AIRating?
+}
+model Like {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation("UserLikes", fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+model Comment {
+  id            String    @id @default(cuid())
+  content       String    @db.Text
+  userId        String
+  user          User      @relation("UserComments", fields: [userId], references: [id])
+  postId        String
+  post          Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -51,7 +95,20 @@ model Account {
 
   @@unique([provider, providerAccountId])
 }
-
+model AIRating {
+  id                  String  @id @default(cuid())
+  freelancerId        String
+  freelancer          User    @relation("FreelancerAIRatings", fields: [freelancerId], references: [id])
+  postId              String  @unique
+  post                Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  engagementScore     Float
+  contentQualityScore Float
+  mediaQualityScore   Float
+  commentSentimentScore Float
+  authenticityScore   Float
+  overallAIScore      Float
+  createdAt           DateTime @default(now())
+}
 model Session {
   sessionToken String   @unique
   userId       String

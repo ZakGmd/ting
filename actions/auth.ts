@@ -207,7 +207,7 @@ export async function setupOAuthUser(userId: string) {
       data: {
         profileCompleted: false,
         registrationStep: 2,
-        userType: user.userType || "FREELANCER" // Default to FREELANCER if not set
+        userType: user.userType   
       }
     });
     
