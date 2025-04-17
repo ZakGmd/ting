@@ -4,6 +4,38 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "../notifications/notificationActions";
+import { Prisma } from "@prisma/client";
+
+// Type interfaces
+interface FollowWithFollowing {
+  following: {
+    id: string;
+    name: string;
+    displayName: string | null;
+    profileImage: string | null;
+    image: string | null;
+    bio: string | null;
+    experience: string | null;
+    userType: string;
+  };
+}
+
+interface FollowWithFollower {
+  follower: {
+    id: string;
+    name: string;
+    displayName: string | null;
+    profileImage: string | null;
+    image: string | null;
+    bio: string | null;
+    experience: string | null;
+    userType: string;
+  };
+}
+
+interface FollowingId {
+  followingId: string;
+}
 
 // Type definition for user data with follow status
 export type UserWithFollowStatus = {
@@ -146,7 +178,7 @@ export async function getFollowing(userId?: string, limit = 10, offset = 0) {
     });
 
     // Map to return user data with isFollowing status
-    const followingUsers = following.map((follow: any) => ({
+    const followingUsers = following.map((follow: FollowWithFollowing) => ({
       ...follow.following,
       isFollowing: true,
     }));
@@ -204,21 +236,21 @@ export async function getFollowers(userId?: string, limit = 10, offset = 0) {
       const followedByMe = await prisma.follow.findMany({
         where: {
           followerId: session.user.id,
-          followingId: { in: followers.map((f: any) => f.follower.id) }
+          followingId: { in: followers.map((f: FollowWithFollower) => f.follower.id) }
         },
         select: {
           followingId: true
         }
       });
       
-      const followedIds = new Set(followedByMe.map((f: any) => f.followingId));
+      const followedIds = new Set(followedByMe.map((f: FollowingId) => f.followingId));
       
-      followersWithStatus = followers.map((follow: any) => ({
+      followersWithStatus = followers.map((follow: FollowWithFollower) => ({
         ...follow.follower,
         isFollowing: followedIds.has(follow.follower.id),
       }));
     } else {
-      followersWithStatus = followers.map((follow: any) => ({
+      followersWithStatus = followers.map((follow: FollowWithFollower) => ({
         ...follow.follower,
         isFollowing: false,
       }));
@@ -286,7 +318,7 @@ export async function searchUsers(query: string, onlyFreelancers = true, limit =
       },
     });
 
-    const followingIds = new Set(following.map((f: any) => f.followingId));
+    const followingIds = new Set(following.map((f: FollowingId) => f.followingId));
     
     const usersWithFollowStatus = users.map(user => ({
       ...user,

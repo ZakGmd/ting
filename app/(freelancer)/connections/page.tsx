@@ -4,8 +4,9 @@ import { useAuth } from '@/hooks/useAuth';
 import FollowList from '@/components/freelancer/follow/FollowList';
 import { Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function ConnectionsPage() {
+function ConnectionsContent() {
   const { user, loading } = useAuth();
   const searchParams = useSearchParams();
   const tab = searchParams.get('tab') as 'followers' | 'following' | null;
@@ -39,5 +40,17 @@ export default function ConnectionsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ConnectionsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+      </div>
+    }>
+      <ConnectionsContent />
+    </Suspense>
   );
 } 
