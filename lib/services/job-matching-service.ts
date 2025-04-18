@@ -17,6 +17,30 @@ type MatchedFreelancer = {
   completedProjects: number;
 };
 
+// Define interfaces for job and freelancer data
+interface JobDetails {
+  difficultyLevel: Experience;
+  title: string;
+  requirements: string;
+  description: string | null;
+  client: {
+    id: string;
+  };
+}
+
+// Updated to allow nullable experience
+interface EnrichedFreelancer {
+  id: string;
+  name: string;
+  profileImage: string | null;
+  bio: string | null;
+  experience: Experience | null;
+  combinedRating: number;
+  tags: string[];
+  skills: string | null;
+  completedProjects: number;
+}
+
 export const jobMatchingService = {
   /**
    * Finds the best-matched freelancers for a job based on ratings and experience
@@ -43,10 +67,10 @@ export const jobMatchingService = {
     }
 
     // Find freelancers that match the job's difficulty level
-    const matchingFreelancers = await findMatchingFreelancers(job);
+    const matchingFreelancers = await findMatchingFreelancers(job as unknown as JobDetails);
     
     // Get the top matches based on combined score and relevance
-    const topMatches = await rankFreelancers(matchingFreelancers, job, limit);
+    const topMatches = await rankFreelancers(matchingFreelancers, job as unknown as JobDetails, limit);
     
     return topMatches;
   },
@@ -105,7 +129,6 @@ export const jobMatchingService = {
         bio: true,
         posts: {
           select: {
-           
             description: true,
             tags: true,
           },
@@ -119,7 +142,7 @@ export const jobMatchingService = {
 
     // Create portfolio text for analysis
     const portfolioText = freelancer.posts
-      .map(post =>  ":" + post.description.substring(0, 200))
+      .map(post => ":" + post.description.substring(0, 200))
       .join('\n');
 
     // Use mock skill matching service
@@ -141,7 +164,7 @@ export const jobMatchingService = {
 /**
  * Finds freelancers that match the job's difficulty level or higher
  */
-async function findMatchingFreelancers(job: any): Promise<any[]> {
+async function findMatchingFreelancers(job: JobDetails): Promise<EnrichedFreelancer[]> {
   // Define which experience levels can take on which job difficulties
   const eligibleExperiences: Record<Experience, Experience[]> = {
     "BEGINNER": ["BEGINNER"],
@@ -154,7 +177,7 @@ async function findMatchingFreelancers(job: any): Promise<any[]> {
     where: {
       userType: "FREELANCER",
       experience: {
-        in: eligibleExperiences[job.difficultyLevel as Experience]
+        in: eligibleExperiences[job.difficultyLevel]
       }
     },
     select: {
@@ -213,10 +236,17 @@ async function findMatchingFreelancers(job: any): Promise<any[]> {
 /**
  * Ranks freelancers based on their match score for a job
  */
-async function rankFreelancers(freelancers: any[], job: any, limit: number): Promise<MatchedFreelancer[]> {
+async function rankFreelancers(
+  freelancers: EnrichedFreelancer[], 
+  job: JobDetails, 
+  limit: number
+): Promise<MatchedFreelancer[]> {
+  // Filter out freelancers with null experience
+  const validFreelancers = freelancers.filter(f => f.experience !== null);
+  
   // Calculate match scores for all freelancers
   const scoredFreelancers = await Promise.all(
-    freelancers.map(async (freelancer) => {
+    validFreelancers.map(async (freelancer) => {
       // Calculate a relevance score based on required skills and job description
       const relevanceScore = await calculateRelevanceScore(freelancer, job);
       
@@ -225,7 +255,7 @@ async function rankFreelancers(freelancers: any[], job: any, limit: number): Pro
         "BEGINNER": 0.7,
         "INTERMEDIATE": 0.85,
         "ADVANCED": 1.0
-      }[freelancer.experience as Experience] 
+      }[freelancer.experience as Experience];
       
       // Factor in completion rate and past projects
       const projectBonus = Math.min(0.5, freelancer.completedProjects * 0.05);
@@ -241,6 +271,7 @@ async function rankFreelancers(freelancers: any[], job: any, limit: number): Pro
       
       return {
         ...freelancer,
+        experience: freelancer.experience as Experience, // Type assertion since we filtered nulls
         matchScore: parseFloat(matchScore.toFixed(1))
       };
     })
@@ -256,7 +287,10 @@ async function rankFreelancers(freelancers: any[], job: any, limit: number): Pro
 /**
  * Calculates a relevance score between a freelancer and a job
  */
-async function calculateRelevanceScore(freelancer: any, job: any): Promise<number> {
+async function calculateRelevanceScore(
+  freelancer: EnrichedFreelancer, 
+  job: JobDetails
+): Promise<number> {
   // Simple keyword matching (more sophisticated approaches could be used)
   const jobKeywords = extractKeywords(job.title + " " + job.requirements);
   const freelancerKeywords = [
