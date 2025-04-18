@@ -2,11 +2,13 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import FollowList from '@/components/freelancer/follow/FollowList';
 
+interface ConnectionsPageProps {
+  searchParams: { tab?: 'followers' | 'following' }
+}
+
 export default async function ConnectionsPage({
   searchParams
-}: {
-  searchParams: { tab?: 'followers' | 'following' }
-}) {
+}: ConnectionsPageProps) {
   const session = await auth();
   
   if (!session?.user) {
