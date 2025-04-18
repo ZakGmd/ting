@@ -1,5 +1,5 @@
 // app/api/ai/rating/[freelancerId]/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { combinedRatingService } from "@/lib/services/combined-rating-service";
