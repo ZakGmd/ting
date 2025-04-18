@@ -2,20 +2,23 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import FollowList from '@/components/freelancer/follow/FollowList';
 
-interface ConnectionsPageProps {
-  searchParams: { tab?: 'followers' | 'following' }
+type TabType = 'followers' | 'following';
+
+interface PageProps {
+  params: Record<string, string>;
+  searchParams: Record<string, string | string[] | undefined>;
 }
 
 export default async function ConnectionsPage({
   searchParams
-}: ConnectionsPageProps) {
+}: PageProps) {
   const session = await auth();
   
   if (!session?.user) {
     redirect('/sign-in'); 
   }
   
-  const tab = searchParams.tab || 'followers';
+  const tab = (searchParams.tab as TabType) || 'followers';
   
   return (
     <div className="container max-w-6xl mx-auto py-8 px-4">
