@@ -11,7 +11,7 @@ export default function QuickStates() {
         <>
              <div className={`fixed max-w-[540px] -inset-x-6.5 -bottom-1 z-30 transition-transform duration-300 ease-in  px-10 w-full overflow-hidden ${isOpen ? "  ": " translate-y-[650px] "} `}>
                       
-                      <div className=" bg-black/40 backdrop-blur-lg     overflow-hidden  text-white shadow-[0_-1px_0.2px_rgba(0,0,0,0.5),inset_0px_0.7px_0px_rgba(255,255,255,0.10)] rounded-xl rounded-b-none border border-black ">
+                      <div className=" bg-black/40 backdrop-blur-2xl     overflow-hidden  text-white shadow-[0_-1px_0.2px_rgba(0,0,0,0.5),inset_0px_0.7px_0px_rgba(255,255,255,0.10)] rounded-xl rounded-b-none border border-black ">
                           <div className="relative h-[120px] overflow-hidden">
                               {isOpen ?(
                                 <div >
@@ -99,7 +99,7 @@ export default function QuickStates() {
                                               <div className='w-full   mx-auto   rounded-md    grid-cols-3 gap-2 grid'>
                                               <div className='  bg-[#c96542]/90 shadow-[0_1px_0.4px_rgba(0,0,0,0.8),inset_0px_1px_1px_rgba(255,255,255,0.1)] to-[120%] font-light   py-1 text-center rounded-md text-[14px] grid col-span-1  overflow-hidden '>Week</div>
                                               <div className='  py-1 text-center font-light hover:bg-[#fc7348]/40 hover:shadow-[0_1px_0.4px_rgba(0,0,0,0.8),inset_0px_1px_1px_rgba(255,255,255,0.1)] transition-all duration-200 cursor-pointer rounded-md text-[14px] col-span-1 shadow-[inset_0px_1px_1px_rgba(0,0,0,0.7),0px_0.75px_0.65px_rgba(255,255,255,0.10)] '>Month</div>
-                                              <div className='  py-1 text-center font-light rounded-md text-[14px] col-span-1 shadow-[inset_0px_1px_1px_rgba(0,0,0,0.7),0px_0.75px_0.65px_rgba(255,255,255,0.10)] '>Year</div>
+                                              <div className='  py-1 text-center font-light cursor-pointer rounded-md text-[14px] hover:bg-[#fc7348]/40 col-span-1 shadow-[inset_0px_1px_1px_rgba(0,0,0,0.7),0px_0.75px_0.65px_rgba(255,255,255,0.10)] '>Year</div>
                                           </div>
                                           </div>
                                           <div className="grid grid-cols-3 mt-3 gap-2">
