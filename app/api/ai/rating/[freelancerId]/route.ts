@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { combinedRatingService } from "@/lib/services/combined-rating-service";
 
 export async function GET(
-  req: NextRequest,
   { params }: { params: { freelancerId: string } }
 ) {
   try {
