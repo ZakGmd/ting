@@ -57,22 +57,6 @@ export default async function JobMatchesPage({ params }: { params: { id: string 
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
-  
-  // Helper function to get status badge color
-  const getStatusBadgeColor = (status: string) => {
-    switch (status) {
-      case 'OPEN':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'IN_PROGRESS':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'COMPLETED':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800 border-red-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
 
   const inviteFreelancer = async (freelancerId: string) => {
     // In a real app, this would send an invitation or notification

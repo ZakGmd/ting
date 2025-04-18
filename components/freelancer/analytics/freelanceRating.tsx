@@ -1,7 +1,7 @@
 // app/components/freelancer/FreelancerRating.tsx
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { StarIcon, AwardIcon } from 'lucide-react';
 import { Chart as ChartJS, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend, ChartData, ChartOptions } from 'chart.js';
 import { Radar } from 'react-chartjs-2';
@@ -370,7 +370,7 @@ export default function FreelancerRating({ freelancerId }: Props) {
                         
                         {rating.comments && (
                           <p className="mt-2 text-sm text-gray-600">
-                            "{rating.comments}"
+                            &quot;{rating.comments}&quot;
                           </p>
                         )}
                       </div>

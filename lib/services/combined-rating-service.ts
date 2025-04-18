@@ -2,7 +2,6 @@
 
 import { prisma } from "@/lib/prisma";
 import { Experience } from "@prisma/client";
-import { ratingService } from "./rating-service";
 
 type FreelancerRatingData = {
   aiRatings: {
@@ -61,7 +60,7 @@ export const combinedRatingService = {
    */
   async updateFreelancerRating(freelancerId: string): Promise<void> {
     // Recalculate the combined rating
-    const combinedRating = await this.getFreelancerCombinedRating(freelancerId);
+    await this.getFreelancerCombinedRating(freelancerId);
     
     // Update the experience level based on the new rating
     await this.updateFreelancerExperienceLevel(freelancerId);

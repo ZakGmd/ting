@@ -135,7 +135,11 @@ async function analyzePostComments(comments: string[]): Promise<number> {
 /**
  * Detects potentially fake or manipulated engagement
  */
-function detectAuthenticEngagement(post: any): number {
+function detectAuthenticEngagement(post: {
+  likes: { length: number };
+  comments: { length: number };
+  views: number;
+}): number {
   // Simple heuristics for authenticity
   const likesCount = post.likes.length;
   const commentsCount = post.comments.length;

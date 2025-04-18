@@ -225,7 +225,7 @@ async function rankFreelancers(freelancers: any[], job: any, limit: number): Pro
         "BEGINNER": 0.7,
         "INTERMEDIATE": 0.85,
         "ADVANCED": 1.0
-      }[freelancer.experience as Experience] ;
+      }[freelancer.experience as Experience] 
       
       // Factor in completion rate and past projects
       const projectBonus = Math.min(0.5, freelancer.completedProjects * 0.05);

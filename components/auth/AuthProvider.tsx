@@ -25,11 +25,9 @@ export default async function AuthProvider({
 
 // This component can be used as a client component wrapper when you need user data
 export function AuthUserProvider({ 
-  children, 
-  user 
+  children
 }: { 
-  children: ReactNode; 
-  user: any; 
+  children: ReactNode;
 }) {
   return (
     <>

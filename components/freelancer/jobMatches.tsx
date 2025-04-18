@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UserIcon, StarIcon, BriefcaseIcon, AwardIcon, BadgeCheckIcon } from 'lucide-react';
+import { UserIcon, StarIcon, BriefcaseIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -114,7 +114,7 @@ export default function JobMatches({ jobId, onSelectFreelancer }: Props) {
             </div>
             <h3 className="text-lg font-medium text-gray-900">No matches found</h3>
             <p className="mt-1 text-sm text-gray-500">
-              We couldn't find any freelancers that match your job requirements.
+              We couldn&apos;t find any freelancers that match your job requirements.
             </p>
           </div>
         </div>
@@ -163,7 +163,7 @@ export default function JobMatches({ jobId, onSelectFreelancer }: Props) {
             </div>
             <div>
               <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-                {freelancer.bio || "This freelancer hasn't added a bio yet."}
+                {freelancer.bio || "This freelancer hasn&apos;t added a bio yet."}
               </p>
               
               <div className="flex flex-wrap gap-2 mb-4">

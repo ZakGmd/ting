@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { analyzeSentiment, analyzeContentQuality, analyzeSkillMatch } from "@/lib/services/mock-ai-service";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Test the mock AI services
     const sentimentResult = analyzeSentiment(
