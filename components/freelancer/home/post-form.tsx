@@ -4,7 +4,8 @@ import { XIcon, ImageIcon, Gift, BarChart2, Smile, Calendar, MapPin } from "luci
 import Image from "next/image";
 import { useState, useRef, useTransition  } from "react";
 import { createPost, PostWithUser } from "@/actions/freelancer/freelancerActions";
-import { User } from "@/app/(freelancer)/home/page";
+import { User } from "./feed";
+
 
 
 
@@ -12,6 +13,7 @@ interface CreatePostFormProps {
   user: User;
   onPostCreated: (post: PostWithUser) => void;
 }
+
 
 export default function CreatePostForm({ user, onPostCreated }: CreatePostFormProps) {
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
@@ -26,7 +28,7 @@ export default function CreatePostForm({ user, onPostCreated }: CreatePostFormPr
     const newFiles = Array.from(files);
     setMediaFiles(prev => [...prev, ...newFiles]);
     
-    // Generate previews
+    
     const newPreviews = newFiles.map(file => URL.createObjectURL(file));
     setMediaPreviews(prev => [...prev, ...newPreviews]);
   };
@@ -63,8 +65,17 @@ export default function CreatePostForm({ user, onPostCreated }: CreatePostFormPr
       const result = await createPost(formData);
       
       if (result.success && result.post) {
+        // Ensure post data has the correct structure before updating UI
+        const postWithFullLikes = {
+          ...result.post,
+          likes: result.post.likes.map(like => ({
+            id: like.id,
+            userId: like.userId || ''
+          }))
+        };
+        
         // Notify parent component of the new post for optimistic updates
-        onPostCreated(result.post);
+        onPostCreated(postWithFullLikes);
         
         // Reset form and state
         formRef.current?.reset();

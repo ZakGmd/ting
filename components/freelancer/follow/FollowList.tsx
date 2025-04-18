@@ -12,6 +12,7 @@ import { UserPlus, UserMinus, Loader2, Users } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const experienceColors: Record<string, string> = {
   BEGINNER: 'bg-green-500/10 text-green-500',
@@ -27,6 +28,8 @@ interface FollowListProps {
 }
 
 export default function FollowList({ userId, initialTab = 'followers' }: FollowListProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [users, setUsers] = useState<UserWithFollowStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,6 +38,20 @@ export default function FollowList({ userId, initialTab = 'followers' }: FollowL
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const limit = 10;
+
+  // Update URL when tab changes without full page reload
+  useEffect(() => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    
+    if (current.get('tab') !== activeTab) {
+      current.set('tab', activeTab);
+      const search = current.toString();
+      const query = search ? `?${search}` : '';
+      
+      // Use router.replace to update URL without adding to history
+      router.replace(`${window.location.pathname}${query}`, { scroll: false });
+    }
+  }, [activeTab, router, searchParams]);
 
   const fetchUsers = useCallback(async (type: TabType, append = false) => {
     setIsLoading(true);
@@ -92,17 +109,17 @@ export default function FollowList({ userId, initialTab = 'followers' }: FollowL
     }
   };
 
-  const handleFollow = (userId: string, isFollowing: boolean) => {
+  const handleFollow = (targetUserId: string, isFollowing: boolean) => {
     startTransition(async () => {
       try {
         const action = isFollowing ? unfollowUser : followUser;
-        const res = await action(userId);
+        const res = await action(targetUserId);
         
         if (res.success) {
           // Update the UI optimistically
           setUsers((prev) => 
             prev.map((user) => 
-              user.id === userId 
+              user.id === targetUserId 
                 ? { ...user, isFollowing: !isFollowing } 
                 : user
             )
@@ -270,4 +287,4 @@ export default function FollowList({ userId, initialTab = 'followers' }: FollowL
       )}
     </div>
   );
-} 
+}

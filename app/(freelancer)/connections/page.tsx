@@ -1,32 +1,20 @@
-'use client';
-
-import { useAuth } from '@/hooks/useAuth';
+import { auth } from "@/auth"; 
+import { redirect } from "next/navigation";
 import FollowList from '@/components/freelancer/follow/FollowList';
-import { Loader2 } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
 
-function ConnectionsContent() {
-  const { user, loading } = useAuth();
-  const searchParams = useSearchParams();
-  const tab = searchParams.get('tab') as 'followers' | 'following' | null;
+export default async function ConnectionsPage({
+  searchParams
+}: {
+  searchParams: { tab?: 'followers' | 'following' }
+}) {
+  const session = await auth();
   
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
-      </div>
-    );
+  if (!session?.user) {
+    redirect('/sign-in'); 
   }
   
-  if (!user) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-white">Please sign in to view connections</p>
-      </div>
-    );
-  }
-
+  const tab = searchParams.tab || 'followers';
+  
   return (
     <div className="container max-w-6xl mx-auto py-8 px-4">
       <div className="mb-6">
@@ -36,21 +24,9 @@ function ConnectionsContent() {
       
       <div className="flex justify-center">
         <div className="w-full max-w-md">
-          <FollowList userId={user.id} initialTab={tab || 'followers'} />
+          <FollowList userId={session.user.id} initialTab={tab} />
         </div>
       </div>
     </div>
   );
 }
-
-export default function ConnectionsPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex justify-center items-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
-      </div>
-    }>
-      <ConnectionsContent />
-    </Suspense>
-  );
-} 

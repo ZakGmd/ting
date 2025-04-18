@@ -5,8 +5,19 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatDistanceToNow } from 'date-fns';
 import { PostWithUser, toggleLike, getComments, addComment } from "@/actions/freelancer/freelancerActions";
-import { useState, useTransition, useRef, useOptimistic } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useState, useTransition, useRef, useOptimistic, useEffect } from "react";
+
+interface User {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  profileImage?: string | null;
+  displayName?: string | null;
+  experience?: string | null;
+  type?: "FREELANCER" | "CLIENT";
+  profileCompleted?: boolean;
+}
 
 interface Comment {
   id: string;
@@ -14,23 +25,24 @@ interface Comment {
   createdAt: string;
   user: {
     id: string;
-    name: string;
-    image: string | null;
-    profileImage: string | null;
-    displayName: string | null;
-    experience: string | null;
+    name?: string | null;
+    image?: string | null;
+    profileImage?: string | null;
+    displayName?: string | null;
+    experience?: string | null;
+    type?: "FREELANCER" | "CLIENT";
+    profileCompleted?: boolean;
   };
 }
 
 interface PostProps {
   post: PostWithUser;
+  user: User | null; 
   onPostUpdated?: (updatedPost: PostWithUser) => void;
 }
 
-export default function Post({ post, onPostUpdated }: PostProps) {
-  const { user } = useAuth();
+export default function Post({ post, user, onPostUpdated }: PostProps) {
   const [isPending, startTransition] = useTransition();
-
   const [currentPost, setCurrentPost] = useState<PostWithUser>(post);
   const [expanded, setExpanded] = useState(false);
   const [commentsList, setCommentsList] = useState<Comment[]>([]);
@@ -38,6 +50,12 @@ export default function Post({ post, onPostUpdated }: PostProps) {
   const [newComment, setNewComment] = useState('');
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const [isAddingComment, setIsAddingComment] = useState(false);
+  
+  // Check if the current user has already liked this post
+  const [initialLikeState, setInitialLikeState] = useState<boolean>(() => {
+    if (!user?.id) return false;
+    return post.likes.some(like => like.userId  === user.id);
+  });
   
   // Optimistic UI for comments
   const [optimisticComments, addOptimisticComment] = useOptimistic<
@@ -73,9 +91,20 @@ export default function Post({ post, onPostUpdated }: PostProps) {
     }
   );
   
-  // Check if post is liked based on optimistic likes
+  // Update the post when it changes from props
+  useEffect(() => {
+    setCurrentPost(post);
+    
+    // Check if user has liked this post whenever the post changes
+    if (user?.id) {
+      const hasLiked = post.likes.some(like => like.id === user.id);
+      setInitialLikeState(hasLiked);
+    }
+  }, [post, user?.id]);
+  
+  // Check if post is liked based on optimistic likes or initial state
   const isOptimisticallyLiked = user?.id ? 
-    optimisticLikes.some(like => 'userId' in like && like.userId === user.id) : 
+    optimisticLikes.some(like => 'userId' in like && like.userId === user.id) || initialLikeState : 
     false;
   
   const {
@@ -92,7 +121,7 @@ export default function Post({ post, onPostUpdated }: PostProps) {
   const userProfileUrl = `/profile/${creator.id}`;
   const postUrl = `/post/${id}`;
   const userImage = creator.profileImage || creator.image;
-  const displayName = creator.displayName || creator.name;
+  const displayName = creator.displayName || creator.name || 'Anonymous';
   const isPro = creator.experience === 'ADVANCED';
 
   const handleLike = () => {
@@ -102,6 +131,9 @@ export default function Post({ post, onPostUpdated }: PostProps) {
     }
 
     startTransition(() => {
+      // Toggle the initial like state
+      setInitialLikeState(!initialLikeState);
+      
       // Apply optimistic update within the transition
       addOptimisticLike({ add: !isOptimisticallyLiked });
       
@@ -119,11 +151,13 @@ export default function Post({ post, onPostUpdated }: PostProps) {
           // Revert to original post state on error
           console.error("Failed to toggle like:", result.error);
           setCurrentPost(post);
+          setInitialLikeState(!initialLikeState); // Revert the like state
         }
       }).catch(error => {
         console.error("Error toggling like:", error);
         // Revert to original post state on error
         setCurrentPost(post);
+        setInitialLikeState(!initialLikeState); // Revert the like state
       });
     });
   };
@@ -163,10 +197,12 @@ export default function Post({ post, onPostUpdated }: PostProps) {
           user: {
             id: user.id,
             name: user.name,
-            image: user.image || null,
-            profileImage: user.profileImage || null,
-            displayName: user.displayName || null,
-            experience: user.experience || null
+            image: user.image,
+            profileImage: user.profileImage,
+            displayName: user.displayName,
+            experience: user.experience,
+            type: user.type,
+            profileCompleted: user.profileCompleted
           }
         });
       }
@@ -219,7 +255,7 @@ export default function Post({ post, onPostUpdated }: PostProps) {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-700 text-white">
-                        {displayName.charAt(0)}
+                        {displayName?.charAt(0) || 'A'}
                       </div>
                     )}
                   </div>
@@ -257,7 +293,7 @@ export default function Post({ post, onPostUpdated }: PostProps) {
                     src={mediaUrls[0]}
                     width={600}
                     height={400}
-                    alt={`Image for post `}
+                    alt={`Image for post`}
                     className="w-full object-cover max-h-[400px]"
                   />
                 </div>
@@ -320,12 +356,12 @@ export default function Post({ post, onPostUpdated }: PostProps) {
                             src={user.image}
                             width={28}
                             height={28}
-                            alt={user.name}
+                            alt={user.name || 'User'}
                             className="w-full h-full object-cover"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gray-700 text-white text-xs">
-                            {user.name.charAt(0)}
+                            {user.name?.charAt(0) || 'U'}
                           </div>
                         )}
                       </div>
@@ -353,7 +389,7 @@ export default function Post({ post, onPostUpdated }: PostProps) {
                     </form>
                   ) : (
                     <div className="p-2 text-center bg-gray-800/20 rounded-lg text-sm mb-4">
-                      <a href="/signin" className="text-[#fc7348] hover:underline">Sign in</a> to add a comment
+                      <Link href="/sign-in" className="text-[#fc7348] hover:underline">Sign in</Link> to add a comment
                     </div>
                   )}
                   
@@ -379,19 +415,19 @@ export default function Post({ post, onPostUpdated }: PostProps) {
                                   src={comment.user.image}
                                   width={28}
                                   height={28}
-                                  alt={comment.user.name}
+                                  alt={comment.user.name || 'User'}
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-gray-700 text-white text-xs">
-                                  {comment.user.name.charAt(0)}
+                                  {comment.user.name?.charAt(0) || 'U'}
                                 </div>
                               )}
                             </div>
                             
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
-                                <span className="font-semibold text-xs">{comment.user.displayName || comment.user.name}</span>
+                                <span className="font-semibold text-xs">{comment.user.displayName || comment.user.name || 'Anonymous'}</span>
                                 <span className="text-xs text-gray-400">
                                   {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
                                 </span>

@@ -8,7 +8,6 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
-
 model User {
   id               String      @id @default(cuid())
   email            String      @unique
@@ -33,16 +32,39 @@ model User {
   accounts         Account[]
   sessions         Session[]
   posts            Post[]             @relation("CreatorPosts")
-  followedBy    Follow[]  @relation("Follower")
-  following     Follow[]  @relation("Following")
-  aiRatings        AIRating[]        @relation("FreelancerAIRatings")
-  comments         Comment[]         @relation("UserComments")
-  likes            Like[]            @relation("UserLikes")
+  followedBy       Follow[]           @relation("Follower")
+  following        Follow[]           @relation("Following")
+  aiRatings        AIRating[]         @relation("FreelancerAIRatings")
+  comments         Comment[]          @relation("UserComments")
+  likes            Like[]             @relation("UserLikes")
   
   // Notification relationships
-  notifications    Notification[]    @relation("UserNotifications")
-  actorNotifications Notification[] @relation("NotificationActor")
+  notifications     Notification[]     @relation("UserNotifications")
+  actorNotifications Notification[]    @relation("NotificationActor")
+  jobsPosted    Job[]              @relation("ClientJobs")
+  applications  JobApplication[]   @relation("FreelancerApplications")
+  receivedRatings  Rating[]        @relation("FreelancerRatings")
+  givenRatings     Rating[]        @relation("ClientRatings")
+  freelancerProjects Project[]     @relation("FreelancerProjects")
+  clientProjects    Project[]      @relation("ClientProjects")
+  
 }
+
+
+
+
+
+enum UserType {
+  FREELANCER
+  CLIENT
+}
+
+enum Experience {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
 model Follow {
   id            String   @id @default(cuid())
   followerId    String
@@ -56,44 +78,14 @@ model Follow {
   @@unique([followerId, followingId])
 }
 
-model Post {
-  id            String    @id @default(cuid())
-
-  description   String    @db.Text
-  mediaUrls     String[]  // Array of URLs to images or videos
-  creatorId     String
-  creator       User      @relation("CreatorPosts", fields: [creatorId], references: [id])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  tags          String[]
-  
-  // Engagement metrics
-  likes         Like[]
-  comments      Comment[]
-  views         Int       @default(0)
-  
-  // AI analyzed metrics
-  aiRating      AIRating?
-}
-model Like {
-  id        String   @id @default(cuid())
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation("UserLikes", fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-
-  @@unique([postId, userId])
-}
-model Comment {
-  id            String    @id @default(cuid())
-  content       String    @db.Text
-  userId        String
-  user          User      @relation("UserComments", fields: [userId], references: [id])
-  postId        String
-  post          Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  userType     UserType?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 model Account {
   id                String  @id @default(cuid())
@@ -112,30 +104,6 @@ model Account {
 
   @@unique([provider, providerAccountId])
 }
-model AIRating {
-  id                  String  @id @default(cuid())
-  freelancerId        String
-  freelancer          User    @relation("FreelancerAIRatings", fields: [freelancerId], references: [id])
-  postId              String  @unique
-  post                Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
-  engagementScore     Float
-  contentQualityScore Float
-  mediaQualityScore   Float
-  commentSentimentScore Float
-  authenticityScore   Float
-  overallAIScore      Float
-  createdAt           DateTime @default(now())
-}
-model Session {
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  userType     UserType?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
 model Notification {
   id        String              @id @default(cuid())
   userId    String
@@ -157,18 +125,6 @@ model VerificationToken {
 
   @@id([identifier, token])
 }
-
-enum UserType {
-  FREELANCER
-  CLIENT
-}
-
-enum Experience {
-  BEGINNER
-  INTERMEDIATE
-  ADVANCED
-}
-
 enum NotificationType {
   LIKE
   COMMENT
@@ -177,4 +133,185 @@ enum NotificationType {
   NEW_JOB
   APPLICATION
   SYSTEM
+}
+// Posts made by freelancers to showcase their work
+model Post {
+  id            String    @id @default(cuid())
+  description   String    @db.Text
+  mediaUrls     String[]  // Array of URLs to images or videos
+  creatorId     String
+  creator       User      @relation("CreatorPosts", fields: [creatorId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  tags          String[]
+  
+  // Engagement metrics
+  likes         Like[]
+  comments      Comment[]
+  views         Int       @default(0)
+  
+  // AI analyzed metrics
+  aiRating      AIRating?
+}
+
+// Likes on posts
+model Like {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation("UserLikes", fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+// Comments on posts
+model Comment {
+  id            String    @id @default(cuid())
+  content       String    @db.Text
+  userId        String
+  user          User      @relation("UserComments", fields: [userId], references: [id])
+  postId        String
+  post          Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// Jobs posted by clients
+model Job {
+  id            String    @id @default(cuid())
+  title         String
+  description   String    @db.Text
+  requirements  String    @db.Text
+  budgetMin     Float?
+  budgetMax     Float?
+  difficultyLevel Experience
+  status        JobStatus @default(OPEN)
+  deadline      DateTime?
+  clientId      String
+  client        User      @relation("ClientJobs", fields: [clientId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relationships
+  applications  JobApplication[]
+  project       Project?
+}
+
+enum JobStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// Applications from freelancers to jobs
+model JobApplication {
+  id            String    @id @default(cuid())
+  jobId         String
+  job           Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  freelancerId  String
+  freelancer    User      @relation("FreelancerApplications", fields: [freelancerId], references: [id])
+  proposal      String    @db.Text
+  status        ApplicationStatus @default(PENDING)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+// Projects (accepted jobs)
+model Project {
+  id            String    @id @default(cuid())
+  jobId         String    @unique
+  job           Job       @relation(fields: [jobId], references: [id])
+  freelancerId  String
+  freelancer    User      @relation("FreelancerProjects", fields: [freelancerId], references: [id])
+  clientId      String
+  client        User      @relation("ClientProjects", fields: [clientId], references: [id])
+  status        ProjectStatus @default(IN_PROGRESS)
+  startDate     DateTime  @default(now())
+  endDate       DateTime?
+  milestones    Milestone[]
+  files         ProjectFile[]
+  messages      Message[]
+  rating        Rating?
+}
+
+enum ProjectStatus {
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// Project milestones
+model Milestone {
+  id            String    @id @default(cuid())
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title         String
+  description   String    @db.Text
+  dueDate       DateTime?
+  completed     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// Project files
+model ProjectFile {
+  id            String    @id @default(cuid())
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  fileName      String
+  fileUrl       String
+  uploadedBy    String    // User ID
+  createdAt     DateTime  @default(now())
+}
+
+// Project messages
+model Message {
+  id            String    @id @default(cuid())
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  senderId      String    // User ID
+  content       String    @db.Text
+  createdAt     DateTime  @default(now())
+}
+
+// Ratings given by clients to freelancers
+model Rating {
+  id                String    @id @default(cuid())
+  projectId         String    @unique
+  project           Project   @relation(fields: [projectId], references: [id])
+  clientId          String    // Rater
+  client            User      @relation("ClientRatings", fields: [clientId], references: [id])
+  freelancerId      String    // Rated
+  freelancer        User      @relation("FreelancerRatings", fields: [freelancerId], references: [id])
+  deliveryScore     Float
+  qualityScore      Float
+  communicationScore Float
+  overallScore      Float
+  comments          String?   @db.Text
+  createdAt         DateTime  @default(now())
+}
+
+// AI-generated ratings for freelancer content
+model AIRating {
+  id                  String  @id @default(cuid())
+  freelancerId        String
+  freelancer          User    @relation("FreelancerAIRatings", fields: [freelancerId], references: [id])
+  postId              String  @unique
+  post                Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  engagementScore     Float
+  contentQualityScore Float
+  mediaQualityScore   Float
+  commentSentimentScore Float
+  authenticityScore   Float
+  overallAIScore      Float
+  createdAt           DateTime @default(now())
 }

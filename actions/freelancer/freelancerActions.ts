@@ -4,7 +4,6 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { put } from '@vercel/blob';
-import { createNotification } from "../notifications/notificationActions";
 
 // Type definition for Post with User info
 export type PostWithUser = {
@@ -15,7 +14,10 @@ export type PostWithUser = {
   createdAt: Date;
   updatedAt: Date;
   views: number;
-  likes: { id: string }[];
+  likes: { 
+    id: string , 
+    userId: string
+  }[];
   comments: { id: string }[];
   creator: {
     id: string;
@@ -51,6 +53,7 @@ export async function getPosts(limit = 10, skip = 0): Promise<PostWithUser[]> {
       likes: {
         select: {
           id: true,
+          userId: true,
         },
       },
       comments: {
@@ -133,6 +136,7 @@ export async function createPost(formData: FormData) {
           likes: {
             select: {
               id: true,
+              userId: true,
             },
           },
           comments: {
@@ -316,7 +320,7 @@ export async function toggleLike(postId: string) {
   }
 
   try {
-    // Check if user has already liked the post
+    // Check if the user has already liked the post
     const existingLike = await prisma.like.findUnique({
       where: {
         postId_userId: {
@@ -326,50 +330,24 @@ export async function toggleLike(postId: string) {
       }
     });
 
-    let liked = false;
-
-    // Get post creator to send notification
-    const postRecord = await prisma.post.findUnique({
-      where: { id: postId },
-      select: { creatorId: true }
-    });
-    
-    if (!postRecord) {
-      return { success: false, error: "Post not found" };
-    }
-
-    // Toggle like
     if (existingLike) {
-      // Remove like
+      // If like exists, remove it (unlike)
       await prisma.like.delete({
         where: {
           id: existingLike.id
         }
       });
     } else {
-      // Add like
+      // If like doesn't exist, create it
       await prisma.like.create({
         data: {
           postId,
           userId: session.user.id
         }
       });
-      liked = true;
-      
-      // Create notification (only when adding a like, not removing)
-      if (postRecord.creatorId !== session.user.id) { // Don't notify self-likes
-        await createNotification({
-          userId: postRecord.creatorId,
-          type: "LIKE",
-          message: "Someone liked your post",
-          entityId: postId,
-          actorId: session.user.id,
-          linkUrl: `/post/${postId}`
-        });
-      }
     }
 
-    // Get updated post
+    // Get updated post with likes to return
     const updatedPost = await prisma.post.findUnique({
       where: { id: postId },
       include: {
@@ -401,7 +379,7 @@ export async function toggleLike(postId: string) {
     
     return { 
       success: true, 
-      liked,
+      liked: !existingLike,
       post: updatedPost
     };
   } catch (error: any) {
@@ -432,16 +410,6 @@ export async function addComment(postId: string, content: string) {
   }
 
   try {
-    // Get post creator to send notification
-    const postRecord = await prisma.post.findUnique({
-      where: { id: postId },
-      select: { creatorId: true }
-    });
-    
-    if (!postRecord) {
-      return { success: false, error: "Post not found" };
-    }
-    
     // Create the comment
     const comment = await prisma.comment.create({
       data: {
@@ -462,18 +430,6 @@ export async function addComment(postId: string, content: string) {
         }
       }
     });
-
-    // Create notification for post creator
-    if (postRecord.creatorId !== session.user.id) { // Don't notify self-comments
-      await createNotification({
-        userId: postRecord.creatorId,
-        type: "COMMENT",
-        message: "Someone commented on your post",
-        entityId: postId,
-        actorId: session.user.id,
-        linkUrl: `/post/${postId}#comment-${comment.id}`
-      });
-    }
 
     // Get updated post to return
     const updatedPost = await prisma.post.findUnique({

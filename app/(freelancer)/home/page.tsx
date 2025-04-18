@@ -1,16 +1,14 @@
-'use client';
-
 import { Bell, Bookmark, BarChart3, ClipboardCheck, FolderHeart, HelpCircle, Home, LogOut, Mail, Search, Settings, User } from "lucide-react";
 import { EB_Garamond } from "next/font/google";
 import Link from 'next/link';
 import { Geist } from "next/font/google";
 import QuickStates from "@/components/freelancer/home/quickStates";
-import Post from "@/components/freelancer/home/post";
-import CreatePostForm from "@/components/freelancer/home/post-form";
-import { useEffect, useState, useOptimistic } from "react";
-import { PostWithUser, getPosts } from "@/actions/freelancer/freelancerActions";
+import { getPosts } from "@/actions/freelancer/freelancerActions";
 import { Star } from "lucide-react";
 import UserSearch from "@/components/freelancer/search/UserSearch";
+import { auth } from "@/auth";
+import Feed from "@/components/freelancer/home/feed";
+
 
 
 export interface User {
@@ -45,74 +43,17 @@ const popularSkills = [
     "Tailwind CSS"
 ];
 
-export default function HomePage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [posts, setPosts] = useState<PostWithUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  // Using useOptimistic for immediately updating the UI
-  const [optimisticPosts, addOptimisticPost] = useOptimistic<
-    PostWithUser[],
-    PostWithUser
-  >(posts, (state, newPost) => [newPost, ...state]);
+export default async function HomePage() {
+    const session = await auth();
+    const initialPosts = await getPosts();
 
-  // Fetch posts and user data
-  useEffect(() => {
-    async function loadData() {
-      try {
-        // Get user session
-        const res = await fetch('/api/auth/session');
-        const session = await res.json();
-        
-        if (session?.user) {
-          setUser(session.user as User);
-        }
 
-        // Fetch posts
-        const fetchedPosts = await getPosts();
-        setPosts(fetchedPosts);
-      } catch (error) {
-        console.error('Error loading data:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadData();
-  }, []);
-
-  // Handle optimistic updates when a new post is created
-  const handlePostCreated = (newPost: PostWithUser) => {
-    // Add optimistic post for immediate UI update
-    addOptimisticPost(newPost);
-    
-    // Then update the actual state after server confirms
-    // Instead of just adding the post, check if it already exists to avoid duplicates
-    setPosts(prev => {
-      // Check if the post with this ID already exists
-      const exists = prev.some(post => post.id === newPost.id);
-      if (exists) {
-        // If it exists, replace it
-        return prev.map(post => post.id === newPost.id ? newPost : post);
-      } else {
-        // If it's new, add it to the beginning of the array
-        return [newPost, ...prev];
-      }
-    });
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#fc7348]"></div>
-      </div>
-    );
-  }
 
   return(
     <>
-      <div className={` flex ${geist.className} overflow-hidden items-start justify-between text-white max-w-[1400px] mx-auto `}>
-            <div className="min-h-screen relative max-w-[180px] w-full flex flex-col items-start gap-3 ">
+      <div className={` flex ${geist.className} overflow-hidden items-start justify-between text-white max-w-[1400px] md:flex-row mx-auto `}>
+            
+            <div className="min-h-screen hidden md:flex relative max-w-[180px] w-full  flex-col items-start gap-3 ">
                 <div className="px-3 flex items-start">
                     <h1 className={` text-4xl  ${garamond.className} align-text-top font-normal  bg-clip-text leading-relaxed text-transparent bg-gradient-to-r to-slate-100 from-[-10%] from-[#fc7348]`}>Tingle</h1>
                 </div>
@@ -225,35 +166,7 @@ export default function HomePage() {
                         <div className="w-full absolute   h-[2px] mt-10 z-20  shadow-[inset_0px_1px_1px_rgba(0,0,0,0.7),0px_0.75px_0.65px_rgba(255,255,255,0.10)]"></div>
 
                     </div>
-                    <div className="Feed flex flex-col items-start overflow-y-auto pt-10   w-full ">
-
-                        <div className="flex flex-col items-start w-full">
-                          {user && (
-                            <CreatePostForm 
-                              user={user} 
-                              onPostCreated={handlePostCreated} 
-                            />
-                          )}
-                          <div className="w-full h-[2px] shadow-[inset_0px_1px_1px_rgba(0,0,0,0.7),0px_0.3px_0.65px_rgba(255,255,255,0.10)]"></div>
-                        </div>
-
-                        <div className="flex flex-col items-start w-full mt-4 ">
-                            <div className="px-4.5 flex items-center justify-between w-full">
-                                <div>Recent Activity</div>
-                                <div>view</div>
-                            </div>
-                            
-                            {optimisticPosts.length === 0 ? (
-                              <div className="w-full py-10 text-center text-gray-500">
-                                No posts yet. Be the first to post!
-                              </div>
-                            ) : (
-                              optimisticPosts.map(post => (
-                                <Post key={post.id} post={post} />
-                              ))
-                            )}
-                        </div>
-                    </div>
+                    <Feed initialPosts={initialPosts} user={session?.user || null}/>
                     
                 </div>
                 <div className="w-[4px] h-[100vh]  shadow-[0px_0.5px_1px_rgba(255,255,255,0.1),inset_-0.4px_0.2px_0px_rgba(0,0,0,0.7),inset_0.4px_0.2px_0px_rgba(0,0,0,0.7)] bg-black/5 "></div>
@@ -372,3 +285,7 @@ export default function HomePage() {
     </>    
   );
 }
+
+
+
+
