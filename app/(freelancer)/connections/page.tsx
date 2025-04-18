@@ -4,21 +4,22 @@ import FollowList from '@/components/freelancer/follow/FollowList';
 
 type TabType = 'followers' | 'following';
 
-interface PageProps {
-  params: Record<string, string>;
-  searchParams: Record<string, string | string[] | undefined>;
-}
-
 export default async function ConnectionsPage({
-  searchParams
-}: PageProps) {
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}) {
   const session = await auth();
   
   if (!session?.user) {
     redirect('/sign-in'); 
   }
   
-  const tab = (searchParams.tab as TabType) || 'followers';
+  // Validate that tab is one of the allowed values
+  const tabParam = searchParams.tab;
+  const tab = (tabParam === 'followers' || tabParam === 'following') 
+    ? tabParam 
+    : 'followers';
   
   return (
     <div className="container max-w-6xl mx-auto py-8 px-4">
